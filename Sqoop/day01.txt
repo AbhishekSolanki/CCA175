@@ -1,0 +1,41 @@
+Sqoop
+=====
+- Only mappers no resucers are involved 
+- default no. of mappers are 4. In case of PK present. 1 when no PK is found
+- 
+
+1. Full Load
+
+sqoop import \
+--connect jdbc:mysql://localhost:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+--target-dir /user/cloudera/sqoop/orders
+
+
+2.1 Incremental Load (append) :  Use when rows are continuously being added with increasing value of row id
+
+sqoop import \
+--connect jdbc:mysql://localhost:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+--incremental append \
+--check-column order_id \
+--last-value 1 \
+--m 8 \
+--target-dir /user/cloudera/sqoop/orders/incr_append_1/
+
+2.2 Incremental load (last-modified) : use when data is updated 
+
+sqoop import \
+--connect jdbc:mysql://localhost:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+--incremental lastmodified \
+--check-column order_date \
+--last-value "2013-07-25 00:00:00" \
+--m 8 \
+--target-dir /user/cloudera/sqoop/orders/incr_lastmod_1/
