@@ -2,7 +2,7 @@
 
 
 File|Topic|Details
----|---
+---|---|---
 [Day 1](https://github.com/AbhishekSolanki/HBase/blob/master/training/day01.txt)|Data Ingest|**Sqoop:** basic import, incremental append and lastmodified
 
 ---
