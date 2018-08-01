@@ -2,7 +2,7 @@ Sqoop
 =====
 - Only mappers no resucers are involved 
 - default no. of mappers are 4. In case of PK present. 1 when no PK is found
-- 
+- to change no. of mappers use --num-mappers 4 or -m 4
 
 1. Full Load
 
@@ -11,31 +11,57 @@ sqoop import \
 --username root \
 --password cloudera \
 --table orders \
+--delete-target- dir \
 --target-dir /user/cloudera/sqoop/orders
 
 
 2.1 Incremental Load (append) :  Use when rows are continuously being added with increasing value of row id
 
 sqoop import \
---connect jdbc:mysql://localhost:3306/retail_db \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
 --username root \
 --password cloudera \
 --table orders \
 --incremental append \
 --check-column order_id \
 --last-value 1 \
---m 8 \
+-m 8 \
+--delete-target- dir \ 
 --target-dir /user/cloudera/sqoop/orders/incr_append_1/
 
 2.2 Incremental load (last-modified) : use when data is updated 
 
 sqoop import \
---connect jdbc:mysql://localhost:3306/retail_db \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
 --username root \
 --password cloudera \
 --table orders \
 --incremental lastmodified \
 --check-column order_date \
 --last-value "2013-07-25 00:00:00" \
---m 8 \
+-m 8 \
+--delete-target- dir \
 --target-dir /user/cloudera/sqoop/orders/incr_lastmod_1/
+
+3. Controlling parallelism
+* mappers shows good performance at 8 and 16, but should not be increased than available mappers within MR cluster
+* default sqoop partitions data on PK which and uniformly distributed
+* if not uniformly distributed use --split-by on column name eg. --split-by client_id
+* if tables does not have PK and more --split-by is not specified then job will fail unless -m is set to 1. OR --autoreset-to-one-mapper 
+* --split-limit limits the size of split created. (applicable to interger and date only)
+* If size of a split calculated based on provided --num-mappers parameter exceeds --split-limit parameter then actual number of mappers will be increased
+* --direct mode for fast import only for mysql and postgres
+
+sqoop import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+--split-by order_id \
+-m 2 \
+--direct \
+--split-limit 17221 \
+--delete-target-dir  \
+--target-dir /user/cloudera/sqoop/orders/parallel_import/
+
+# 18/07/31 19:02:12 INFO db.IntegerSplitter: Split size: 17220; Num splits: 4 from: 1 to: 68883
