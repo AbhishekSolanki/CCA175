@@ -65,3 +65,4 @@ sqoop import \
 --target-dir /user/cloudera/sqoop/orders/parallel_import/
 
 # 18/07/31 19:02:12 INFO db.IntegerSplitter: Split size: 17220; Num splits: 4 from: 1 to: 68883
+
