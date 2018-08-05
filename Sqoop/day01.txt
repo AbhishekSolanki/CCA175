@@ -59,10 +59,29 @@ sqoop import \
 --table orders \
 --split-by order_id \
 -m 2 \
---direct \
 --split-limit 17221 \
 --delete-target-dir  \
 --target-dir /user/cloudera/sqoop/orders/parallel_import/
 
 # 18/07/31 19:02:12 INFO db.IntegerSplitter: Split size: 17220; Num splits: 4 from: 1 to: 68883
+
+
+4. list, eval and boundary
+
+4.1 list
+
+sqoop  list-tables \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera 
+
+4.2 eval
+
+sqoop eval \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--query "select count(*) from orders"
+
+4.3 boundary
 
