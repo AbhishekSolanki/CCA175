@@ -3,6 +3,7 @@ Sqoop
 - Only mappers no resucers are involved 
 - default no. of mappers are 4. In case of PK present. 1 when no PK is found
 - to change no. of mappers use --num-mappers 4 or -m 4
+- --columns col1,col2..coln specifies the column names which we want 
 
 1. Full Load
 
@@ -66,7 +67,7 @@ sqoop import \
 # 18/07/31 19:02:12 INFO db.IntegerSplitter: Split size: 17220; Num splits: 4 from: 1 to: 68883
 
 
-4. list, eval and boundary
+4. list, eval and boundary-query
 
 4.1 list
 
@@ -83,5 +84,14 @@ sqoop eval \
 --password cloudera \
 --query "select count(*) from orders"
 
-4.3 boundary
-
+4.3 boundary-query 
+*During import perocess it uses query to calculate the boundary for creating splits. This saves min(plit-by)
+ and max(split-by) operation.
+*If you know the min and value on a table, you can waive complex default computation to get them
+sqoop import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+--boundary-query "select 2,8 from orders'" \
+--target-dir  user/cloudera/sqoop/orders/boundary_import/
