@@ -1,0 +1,23 @@
+PROBLEM 1 : SQOOP IMPORT
+sqoop import --connect "jdbc:mysql://quickstart.cloudera/retail_db" \
+--username root \
+--password cloudera \
+--table customers \
+--compress -compression-codec snappy \
+--target-dir /user/cloudera/problem1/customers/avrodata \
+--fields-terminated-by '|' \
+--where "customer_state='CA'" \
+--as-avrodatafile;
+
+PROBLEM 2: SQOOP EXPORT
+sqoop export --connect "jdbc:mysql://quickstart.cloudera/retail_db" \
+--username root --password cloudera \
+--table customer_new \
+--export-dir /user/cloudera/problem1/customers/text2
+--input-fields-terminated-by '^';
+
+PROBLEM 3 AVRO to PARQUETS
+var dataFile = sqlContext.read.format("com.databricks.spark.avro").
+load("/user/cloudera/problem2/avro")
+sqlContext.setConf("spark.sql.parquet.compression.codec","snappy")
+dataFile.write.parquet("/user/cloudera/problem2/parquet-snappy")
