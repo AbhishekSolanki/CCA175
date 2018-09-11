@@ -9,6 +9,7 @@ sqoop import --connect "jdbc:mysql://quickstart.cloudera/retail_db" \
 --where "customer_state='CA'" \
 --as-avrodatafile;
 
+
 PROBLEM 2: SQOOP EXPORT
 sqoop export --connect "jdbc:mysql://quickstart.cloudera/retail_db" \
 --username root --password cloudera \
@@ -16,8 +17,28 @@ sqoop export --connect "jdbc:mysql://quickstart.cloudera/retail_db" \
 --export-dir /user/cloudera/problem1/customers/text2
 --input-fields-terminated-by '^';
 
+
 PROBLEM 3 AVRO to PARQUETS
-var dataFile = sqlContext.read.format("com.databricks.spark.avro").
+val dataFile = sqlContext.read.format("com.databricks.spark.avro").
 load("/user/cloudera/problem2/avro")
 sqlContext.setConf("spark.sql.parquet.compression.codec","snappy")
 dataFile.write.parquet("/user/cloudera/problem2/parquet-snappy")
+
+
+PROBLEM 4 JOINS
+// USING DAFATRAME
+case class orders(customer_id:Integer, order_id:Integer, order_status:String)
+val ordersDF=sc.textFile("/user/cloudera/practice4/question3/orders/").map(x=>x.split(",")).map(c=>orders(c(2).toInt,c(0).toInt,c(3))).toDF()
+
+case class customer(customer_id: String,customer_fname: String)
+val customerDF=sc.textFile("/user/cloudera/practice4/question3/customers/").map(x=>x.split(",")).map(c=>customer(c(0),c(1))).toDF()
+
+val result4 = customerDF.join(ordersDF,"customer_id").filter("status like '%PENDING%'")
+result4.count
+
+// USING RDDs
+val ordersRDD=sc.textFile("/user/cloudera/practice4/question3/orders/").map(x=>x.split(",")).map(c=>((2).toInt,(c(0).toInt,c(3))))
+val customerRDD=sc.textFile("/user/cloudera/practice4/question3/customers/").map(x=>x.split(",")).map(c=>(c(0).toInt,(c(1))))
+val joinRes = customerRDD.join(ordersRDD)
+val finalRes = joinRes.filter( x => x._2._2._2.contains("PENDING")).map(x=>(x._1,x._2._1,x._2._2._1,x._2._2._2))
+finalRes.count
