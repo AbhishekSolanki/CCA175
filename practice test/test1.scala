@@ -61,3 +61,21 @@ val customerRD = sc.textFile("/user/cloudera/problem3/customer/text").
 map(x=>x.split("\t")).map(c=>customer(c(0),c(1),c(2))).toDF()
 val filteredData = customerRD.filter("customer_city='Brownsville'")
 filteredData.toJSON.saveAsTextFile("/user/cloudera/problem3/customer_Brownsville")
+
+
+//PROBLEM7 read avro and save aas tab delimited gzip file
+val customerRDD = sqlContext.read.format("com.databricks.spark.avro").
+ load("/user/cloudera/problem2/customer/avro")
+
+customerRDD.map(x=>x(0)+"\t"+x(1)+"\t"+(2)).
+ saveAsTextFile("/user/cloudera/problem2/customer_text_gzip1",
+ classOf[org.apache.hadoop.io.compress.GzipCodec])
+
+
+ // PROBLEM 8 read from hive table
+ //hive-site.xml should be available in spark conf 
+ sudo cp /etc/hive/conf/hive-site.xml /etc/spark/conf/
+
+ val hiveContext = new org.apache.spark.sql.hive.HiveContext(sc)
+ val resProblem8 = hiveContext.sql("select * from default.product_replica where product_price > 100")
+ resProblem8.write.parquet("/user/cloudera/problem3/product/output")
