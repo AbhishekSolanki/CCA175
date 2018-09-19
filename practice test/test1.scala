@@ -79,4 +79,3 @@ customerRDD.map(x=>x(0)+"\t"+x(1)+"\t"+(2)).
  val hiveContext = new org.apache.spark.sql.hive.HiveContext(sc)
  val resProblem8 = hiveContext.sql("select * from default.product_replica where product_price > 100")
  resProblem8.write.parquet("/user/cloudera/problem3/product/output")
- 
