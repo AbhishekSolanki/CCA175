@@ -1,0 +1,26 @@
+# Sqooping data as avro file and simple record count check using avro-tools
+
+mkdir sqoop
+
+sqoop import --connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root --password cloudera \
+--table orders \
+--outdir sqoop/orders \
+--compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+--as-avrodatafile \
+--target-dir sqoop/orders
+
+// check record count in mysql
+sqoop eval --connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root --password cloudera \
+--query "select count(*) from orders"
+
+cd sqoop
+
+// check record count from avro files
+avTotalCount=0
+for file in orders/*.avro; do
+ ecount=$(avro-tools tojson $file | wc -l)
+ avTotalCount=$(($avTotalCount+$ecount))
+done
+echo $avTotalCount
