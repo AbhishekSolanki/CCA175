@@ -1,0 +1,38 @@
+sqoop import-all-tables --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username root --password cloudera \
+--as-avrodatafile \
+--warehouse-dir /user/hive/warehouse/retail_stage.db \
+--compress \
+--compression-codec org.apache.hadoop.io.compress.SnappyCodec 
+
+
+
+hadoop fs -get /user/hive/warehouse/retail_stage.db/orders/part-m-00000.avro
+avro-tools getSchema part-m-00000.avro > orders.avsc
+hadoop fs -mkdir -p /user/hive/schemas/order
+hadoop fs -put order.avsc /user/hive/schemas/order
+
+
+hive>>
+
+create external table orders_sqoop 
+stored as avro
+location "/user/hive/warehouse/retail_stage.db/orders/"
+tblproperties("avro.schema.url"="/user/hive/schemas/order/orders.avsc")
+
+
+select * from orders_sqoop X  where X.order_date in ( select inner.order_date from (
+select Y.order_date, count(1) as total_orders from orders_sqoop Y  group by Y.order_date order by Y.order_date desc, total_orders desc limit 1) inner )
+
+
+CREATE  TABLE `orders_avro`(
+  `order_id` int COMMENT '',  
+  order_date String,
+  `order_customer_id` int COMMENT '', 
+  `order_status` string COMMENT '')
+partitioned by(order_month string)
+stored as avro;
+
+set hive.exec.dynamic.partition.mode=nonstrict;
+insert overwrite table orders_avro partition(order_month) 
+select *, substr(to_date(from_unixtime(cast(order_date/1000 as int))),1,7) as order_month from orders_sqoop;
