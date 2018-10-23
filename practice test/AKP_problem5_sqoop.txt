@@ -1,0 +1,85 @@
+ sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username root --password cloudera \
+--table products_replica \
+--fields-terminated-by '|' \
+--null-string "NOT-AVAILABLE" \
+--null-non-string -1 \
+--where "product_id >= 1 && product_id<=1000" \
+-m 3 \
+--target-dir /user/cloudera/problem5/products-text \
+--as-textfile
+
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username root --password cloudera \
+--table products_replica \
+--fields-terminated-by '*' \
+--lines-terminated-by "\n" \
+--null-string "NA" \
+--null-non-string -1000 \
+--where "product_id<=1111" \
+-m 2 \
+--outdir sqoop2 \
+--target-dir  /user/cloudera/problem5/products-text-part1 \
+--as-textfile
+
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username root --password cloudera \
+--table products_replica \
+--fields-terminated-by '*' \
+--lines-terminated-by "\n" \
+--null-string "NA" \
+--null-non-string -1000 \
+--where "product_id>=1111" \
+-m 5 \
+--outdir sqoop3 \
+--target-dir  /user/cloudera/problem5/products-text-part2 \
+--as-textfile
+
+
+sqoop merge \
+--class-name products_replica \
+--jar-file /tmp/sqoop-cloudera/compile/09a283e4913e9dc185bee8e852e42a08/products_replica.jar \
+--onto /user/cloudera/problem5/products-text-part1 \
+--new-data /user/cloudera/problem5/products-text-part2 \
+--target-dir /user/cloudera/problem5/products-text-both-parts \
+--merge-key product_id
+
+
+sqoop job --create first_sqoop_job \
+-- import \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username root --password cloudera \
+--table products_replica \
+--target-dir /user/cloudera/problem5/products-incremental \
+--check-column product_id \
+--incremental append \
+--last-value 0
+
+sqoop job --exec first_sqoop_job
+
+sqoop job --delete first_sqoop_job
+
+
+// Problem 6 
+
+sqoop job --create hive_sqoop_job \
+-- import \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username "root" --password "cloudera" \
+--table products_replica \
+--check-column product_id \
+--incremental append \
+--last-value 0 \
+--hive-import \
+--hive-table products_hive \
+--hive-database problem5
+
+
+//PROBLEM 7
+sqoop export \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username root --password cloudera \
+--export-dir /user/hive/warehouse/problem5.db/products_hive \
+--update-mode allowinsert \
+--update-key product_id \
+--columns "product_id,product_category_id,product_name,product_description,product_price,product_impage,product_grade,product_sentiment" --table products_external;

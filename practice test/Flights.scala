@@ -1,10 +1,11 @@
 // flight data analytics using spark
-
-val flights = sc.parallelize(Array(("6E101","BLR","AMD",1600),("6E101","AMD","DEL",900),("6E101","DEL","IXJ",500),("9W662","DEL","BOM",1200),("9W662","BOM",
-"PNQ",200),("9W662","DEL","PNQ",1400),("SG123","BOM","DEL",1200),("SG234","BLR","BOM",100),("9W098","AMD","PNQ",800),
-("9W098","PNQ","BLR",800),("9W669","DEL","MAA",2500),("AI003","BOM","CCU",1500),("GA876","DEL","CCU",2000),
-("GA567","BOM","MAA",2000),("6E508","AMD","BLR",1600)))
-//flights: org.apache.spark.rdd.RDD[(String, String, String, Int)] = ParallelCollectionRDD[0] at parallelize at <console>:27
+//(Flight_number,origin,dest,distance,price)
+val flights = sc.parallelize(Array(("6E101","BLR","AMD",1600,3486.5),("6E101","AMD","DEL",900,2280.33),("6E101","DEL","IXJ",500,5600.10),
+	("9W662","DEL","BOM",1200,3489.23),("9W662","BOM","PNQ",200,1765.1),("9W662","DEL","PNQ",1400,4876.12),("SG123","BOM","DEL",1200,3398.00),
+	("SG234","BLR","BOM",100,2300.0),("9W098","AMD","PNQ",800,3291.11),("9W098","PNQ","BLR",800,1997),("9W669","DEL","MAA",2500,5298.11),
+	("AI003","BOM","CCU",1500,4532.77),("GA876","DEL","CCU",2000,4322.54),("GA567","BOM","MAA",2000,3673.22),
+	("6E508","AMD","BLR",1600,3777.77)))
+//flights: org.apache.spark.rdd.RDD[(String, String, String, Int,Double)] = ParallelCollectionRDD[0] at parallelize at <console>:27
 /*(6E101,BLR,AMD,1600)
 (6E101,AMD,DEL,900)
 (6E101,DEL,IXJ,500)
@@ -50,3 +51,8 @@ val airportWithMaxDestination = flights.map(x => (x._2,x)).
 (AMD,3,1100.0)
 (DEL,5,1520.0)
 (PNQ,1,800.0)*/
+
+//3. Rank the flight withing each airline company based on price and sort by highest distance and highest rank
+//4. Find the top 3 flight based on orig and dest and select the flight with minumum price
+//5. apply filter on problem 3 having distance > 1500
+//6. store the result in metastore table 
