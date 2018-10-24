@@ -4,7 +4,7 @@ val flights = sc.parallelize(Array(("6E101","BLR","AMD",1600,3486.5),("6E101","A
 	("9W662","DEL","BOM",1200,3489.23),("9W662","BOM","PNQ",200,1765.1),("9W662","DEL","PNQ",1400,4876.12),("SG123","BOM","DEL",1200,3398.00),
 	("SG234","BLR","BOM",100,2300.0),("9W098","AMD","PNQ",800,3291.11),("9W098","PNQ","BLR",800,1997.0),("9W669","DEL","MAA",2500,5298.11),
 	("AI003","BOM","CCU",1500,4532.77),("GA876","DEL","CCU",2000,4322.54),("GA567","BOM","MAA",2000,3673.22),
-	("6E508","AMD","BLR",1600,3777.77)))
+	("6E508","AMD","BLR",1600,3777.77),("6E508","BOM","DEL",1600,3774.77)))
 //flights: org.apache.spark.rdd.RDD[(String, String, String, Int,Double)] = ParallelCollectionRDD[0] at parallelize at <console>:27
 /*(6E101,BLR,AMD,1600,3486.5)
 (6E101,AMD,DEL,900,2280.33)
@@ -64,7 +64,6 @@ price :Double
 import org.apache.spark.sql.expressions.Window
 val airlineBucket = Window.partitionBy("airline").orderBy($"distance".desc)
 
-import scala.collection.mutable.Set
 val flightRankByAirline = flights.map( x=> (x._1,(x._4,x._5))). 
 aggregateByKey((0.0,0.0))( // initial value (total_distance, total_flight)
 ( (acc,value) => (acc._1 + value._1, acc._2 + value._2) ),
@@ -87,5 +86,21 @@ orderBy($"price".desc)
 */
 
 //4. Search the top 3 flight based on orig and dest and select the flight with minumum price
+import scala.collection.mutable.ListBuffer
+val searchTopFlights = flights.map(x => ((x._2,x._3),(x._1,x._5))).
+combineByKey(
+( (x) => List[(String,Double,Int)]((x._1,x._2,1) )),
+( (acc:List[(String,Double,Int)],value) => (value._1,value._2,0)::acc ),
+( (acc1:List[(String,Double,Int)],acc2:List[(String,Double,Int)]) => {
+	var aa = acc1 ::: acc2
+	var retList = ListBuffer[(String,Double,Int)]()
+	aa.sortBy(_._2).zipWithIndex.foreach {
+		case(el,i) => retList+= ((el._1,el._2,i+1)) 
+	}
+	retList.toList
+})
+)
+
 //5. apply filter on problem 3 having distance > 1500
+val flightDistGt1500 = flightRankByAirline.filter(flightRankByAirline.price>1500) 
 //6. store the result in metastore table 
