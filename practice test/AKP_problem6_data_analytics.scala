@@ -74,3 +74,7 @@ val productLess100 = productRankInDept.filter($"product_price" < 100 )
 [56,Fitbit Flex Wireless Activity & Sleep Wristba,99.95,2,99]*/
 
 // store top100Cust and productLess100 into hive tables
+top10Cust.registerTempTable("top10CustTable")
+productLess100.registerTempTable("productLess100")
+sqlContext.sql("create table top_100_customers as select * from top10CustTable")
+sqlContext.sql("create table product_less_100 as select * from productLess100")
