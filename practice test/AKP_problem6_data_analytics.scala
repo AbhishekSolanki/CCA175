@@ -78,3 +78,4 @@ top10Cust.registerTempTable("top10CustTable")
 productLess100.registerTempTable("productLess100")
 sqlContext.sql("create table top_100_customers as select * from top10CustTable")
 sqlContext.sql("create table product_less_100 as select * from productLess100")
+
